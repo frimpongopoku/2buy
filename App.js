@@ -48,7 +48,7 @@ class App extends React.Component {
     (items || []).forEach(
       (item) => (n += Number(item.price) * Number(item.qty))
     );
-    return n;
+    return Math.round(n * 100) / 100;
   }
   submitText(next = false) {
     if (next && next === "price") {
@@ -60,7 +60,8 @@ class App extends React.Component {
     }
     const { text, items, price, qty } = this.state;
     if (!text) return;
-    const newItems = [{ text, price: price || "0", qty }, ...items];
+    const total = Math.round(Number(price) * Number(qty) * 100) / 100;
+    const newItems = [{ text, price: price || "0", qty, total }, ...items];
     this.setState({
       items: newItems,
       text: "",
@@ -80,6 +81,7 @@ class App extends React.Component {
     this.setState({
       items: rest,
       bought: [item, ...bought],
+      total: this.addAll(rest),
     });
   }
 
@@ -91,6 +93,7 @@ class App extends React.Component {
     this.setState({
       bought: rest,
       items: [item, ...items],
+      total: this.addAll(newItems),
     });
   }
   renderItems(purchased = false) {
@@ -106,9 +109,10 @@ class App extends React.Component {
           renderItem={(item) => {
             return (
               <ListItem
-                text={`${item.item.text}`}
-                price={item.item.price}
-                qty={item.item.qty}
+                {...item.item}
+                // text={`${item.item.text}`}
+                // price={item.item.price}
+                // qty={item.item.qty}
                 onItemSelected={this.onItemSelected}
                 purchased={false}
               />
@@ -126,9 +130,10 @@ class App extends React.Component {
         renderItem={(item) => {
           return (
             <ListItem
-              text={`${item.item.text} `}
-              price={item.item.price}
-              qty={item.item.qty}
+              {...item.item}
+              // text={`${item.item.text} `}
+              // price={item.item.price}
+              // qty={item.item.qty}
               onItemSelected={this.undoSelection}
               purchased
             />
@@ -192,7 +197,7 @@ class App extends React.Component {
 }
 
 const ListItem = (props) => {
-  const { text, purchased, onItemSelected, price, qty } = props;
+  const { text, purchased, onItemSelected, price, qty, total } = props;
   const containerStyle = {
     flexDirection: "row",
     padding: 10,
@@ -225,38 +230,54 @@ const ListItem = (props) => {
             style={{ flex: 1 }}
           />
         )}
-        <Text
-          style={{
-            flex: 9,
-          }}
-        >
-          {text}
-          <Text
-            style={{
-              color: purchased ? "maroon" : "green",
-              fontWeight: "bold",
-            }}
-          >
-            {" "}
-            {purchased ? " -" : " +"} {price}
-          </Text>
 
+        {price > 0 ? (
+          <>
+            <Text
+              style={{
+                flex: 9,
+              }}
+            >
+              {text}
+              <Text
+                style={{
+                  color: purchased ? "maroon" : "green",
+                  fontWeight: "bold",
+                }}
+              >
+                {" "}
+                {purchased ? " -" : " +"} {price}
+              </Text>
+
+              <Text
+                style={{
+                  color: "orange",
+                  fontWeight: "bold",
+                  flexDirection: "row",
+                }}
+              >
+                <AntDesign
+                  name="arrowright"
+                  size={15}
+                  color="black"
+                  style={{ marginLeft: 4, marginRight: 4 }}
+                />
+                ({qty})
+              </Text>
+            </Text>
+            <Text style={{ marginLeft: "auto", fontWeight: "bold" }}>
+              {total}
+            </Text>
+          </>
+        ) : (
           <Text
             style={{
-              color: "orange",
-              fontWeight: "bold",
-              flexDirection: "row",
+              flex: 9,
             }}
           >
-            <AntDesign
-              name="arrowright"
-              size={15}
-              color="black"
-              style={{ marginLeft: 4, marginRight: 4 }}
-            />
-            ({qty})
+            {text}
           </Text>
-        </Text>
+        )}
       </View>
     </TouchableOpacity>
   );
