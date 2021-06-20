@@ -24,13 +24,18 @@ class App extends React.Component {
       bought: [],
       total: 0,
       price: 0,
+      qty: 1,
     };
     this.recordText = this.recordText.bind(this);
     this.submitText = this.submitText.bind(this);
     this.undoSelection = this.undoSelection.bind(this);
     this.onItemSelected = this.onItemSelected.bind(this);
     this.priceInput = null;
+    this.qtyInput = null;
+    this.textInput = null;
     this.setPriceInput = (self) => (this.priceInput = self);
+    this.setQtyInput = (self) => (this.qtyInput = self);
+    this.setTextInput = (self) => (this.textInput = self);
   }
 
   recordText(text, fieldName = "text") {
@@ -38,18 +43,33 @@ class App extends React.Component {
     this.setState({ [fieldName]: text });
   }
 
+  addAll(items) {
+    var n = 0;
+    (items || []).forEach(
+      (item) => (n += Number(item.price) * Number(item.qty))
+    );
+    return n;
+  }
   submitText(next = false) {
-    if (next) {
+    if (next && next === "price") {
       this.priceInput.focus();
       return;
+    } else if (next && next === "many") {
+      this.qtyInput.focus();
+      return;
     }
-    const { text, items, price } = this.state;
+    const { text, items, price, qty } = this.state;
     if (!text) return;
+    const newItems = [{ text, price: price || "0", qty }, ...items];
     this.setState({
-      items: [{ text, price: price || "0" }, ...items],
+      items: newItems,
       text: "",
       price: 0,
+      total: this.addAll(newItems),
     });
+    this.priceInput.clear();
+    this.textInput.clear();
+    this.qtyInput.clear();
   }
 
   onItemSelected(item) {
@@ -59,7 +79,7 @@ class App extends React.Component {
     );
     this.setState({
       items: rest,
-      bought: [{ text: item.text, price: item.price }, ...bought],
+      bought: [item, ...bought],
     });
   }
 
@@ -70,7 +90,7 @@ class App extends React.Component {
     );
     this.setState({
       bought: rest,
-      items: [{ text: item.text, price: item.price }, ...items],
+      items: [item, ...items],
     });
   }
   renderItems(purchased = false) {
@@ -88,6 +108,7 @@ class App extends React.Component {
               <ListItem
                 text={`${item.item.text}`}
                 price={item.item.price}
+                qty={item.item.qty}
                 onItemSelected={this.onItemSelected}
                 purchased={false}
               />
@@ -107,6 +128,7 @@ class App extends React.Component {
             <ListItem
               text={`${item.item.text} `}
               price={item.item.price}
+              qty={item.item.qty}
               onItemSelected={this.undoSelection}
               purchased
             />
@@ -138,10 +160,10 @@ class App extends React.Component {
       );
   }
   render() {
-    const { bought, items } = this.state;
+    const { bought, items, total } = this.state;
     return (
       <View style={{ height: "100%", backgroundColor: "#ee8761" }}>
-        <Header />
+        <Header total={total} />
         {this.renderEmptyBasket()}
         <View style={{ paddingLeft: 5, paddingRight: 5 }}>
           {items && items.length > 0 && (
@@ -161,6 +183,8 @@ class App extends React.Component {
           text={this.state.text}
           price={this.state.price}
           setPriceInput={this.setPriceInput}
+          setQtyInput={this.setQtyInput}
+          setTextInput={this.setTextInput}
         />
       </View>
     );
@@ -168,7 +192,7 @@ class App extends React.Component {
 }
 
 const ListItem = (props) => {
-  const { text, purchased, onItemSelected, price } = props;
+  const { text, purchased, onItemSelected, price, qty } = props;
   const containerStyle = {
     flexDirection: "row",
     padding: 10,
@@ -181,7 +205,7 @@ const ListItem = (props) => {
   return (
     <TouchableOpacity
       onPress={() => {
-        if (onItemSelected) onItemSelected({ text, price });
+        if (onItemSelected) onItemSelected({ text, price, qty });
       }}
     >
       <View
@@ -216,12 +240,29 @@ const ListItem = (props) => {
             {" "}
             {purchased ? " -" : " +"} {price}
           </Text>
+
+          <Text
+            style={{
+              color: "orange",
+              fontWeight: "bold",
+              flexDirection: "row",
+            }}
+          >
+            <AntDesign
+              name="arrowright"
+              size={15}
+              color="black"
+              style={{ marginLeft: 4, marginRight: 4 }}
+            />
+            ({qty})
+          </Text>
         </Text>
       </View>
     </TouchableOpacity>
   );
 };
-const Header = () => {
+const Header = (props) => {
+  const { total } = props;
   return (
     <View style={styles.header}>
       <AntDesign name="shoppingcart" size={24} color="white" />
@@ -234,14 +275,21 @@ const Header = () => {
           fontSize: 16,
         }}
       >
-        45.3
+        {total}
       </Text>
     </View>
   );
 };
 
 const Footer = (props) => {
-  const { submitText, recordText, text, setPriceInput, price } = props;
+  const {
+    submitText,
+    recordText,
+    text,
+    setPriceInput,
+    setQtyInput,
+    setTextInput,
+  } = props;
   return (
     <View style={styles.footerContainer}>
       <Text style={{ color: "white", fontWeight: "bold" }}>
@@ -250,6 +298,7 @@ const Footer = (props) => {
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <View style={{ flex: 9, flexDirection: "column" }}>
           <TextInput
+            ref={setTextInput}
             placeholder="Eg. 'Buy Shoes'"
             autoFocus={true}
             style={{
@@ -258,25 +307,44 @@ const Footer = (props) => {
               color: "black",
             }}
             onChangeText={(val) => recordText(val)}
-            onSubmitEditing={(e) => submitText(true)}
+            onSubmitEditing={(e) => submitText("price")}
             returnKeyType="done"
             value={text}
           />
 
-          <TextInput
-            ref={setPriceInput}
-            placeholder="Price : Eg. 50.99"
-            style={{
-              borderBottomColor: "coral",
-              borderBottomWidth: 2,
-              color: "black",
-            }}
-            onChangeText={(val) => recordText(val, "price")}
-            onSubmitEditing={(e) => submitText()}
-            returnKeyType="done"
-            keyboardType="numeric"
-            value={price.toString()}
-          />
+          <View style={{ flexDirection: "row" }}>
+            <TextInput
+              ref={setPriceInput}
+              placeholder="Price : Eg. 50.99"
+              style={{
+                borderBottomColor: "#ffbca4",
+                borderBottomWidth: 2,
+                color: "black",
+                flex: 1,
+                marginRight: 3,
+              }}
+              onChangeText={(val) => recordText(val, "price")}
+              onSubmitEditing={(e) => submitText("many")}
+              returnKeyType="done"
+              keyboardType="numeric"
+              // value={price.toString()}
+            />
+            <TextInput
+              ref={setQtyInput}
+              placeholder="How many ?"
+              style={{
+                borderBottomColor: "#ffbca4",
+                borderBottomWidth: 2,
+                color: "black",
+                flex: 1,
+                marginLeft: 3,
+              }}
+              onChangeText={(val) => recordText(val, "qty")}
+              onSubmitEditing={(e) => submitText()}
+              returnKeyType="done"
+              keyboardType="numeric"
+            />
+          </View>
         </View>
         <TouchableOpacity
           style={{ flex: 1, marginLeft: 6 }}
