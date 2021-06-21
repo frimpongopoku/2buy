@@ -125,7 +125,6 @@ class App extends React.Component {
   onItemSelected(item) {
     const { items, bought } = this.state;
     const rest = (items || []).filter((itm) => itm.text !== item.text);
-    console.log("I am the rest bro", rest);
     this.setState({
       items: rest,
       bought: [item, ...bought],
@@ -222,6 +221,7 @@ class App extends React.Component {
             paddingRight: 5,
             flex: 1,
             bottom: 55,
+            marginTop: 55,
           }}
         >
           {items && items.length > 0 && (
