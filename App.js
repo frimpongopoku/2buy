@@ -1,4 +1,4 @@
-import { StatusBar } from "expo-status-bar";
+// import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
@@ -14,6 +14,8 @@ import {
   FlatList,
   SafeAreaView,
   Button,
+  ScrollView,
+  StatusBar,
 } from "react-native";
 
 const Colors = {
@@ -39,19 +41,19 @@ const Colors = {
 };
 
 const dummy = [
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
-  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text 1", price: 30, qty: 4 },
+  { text: "A new text 2", price: 30, qty: 4 },
+  { text: "A new text t", price: 30, qty: 4 },
+  { text: "A new text 7", price: 30, qty: 4 },
+  { text: "A new text 9", price: 30, qty: 4 },
+  { text: "A new text 6", price: 30, qty: 4 },
+  { text: "A new text 0", price: 30, qty: 4 },
+  { text: "A new text76", price: 30, qty: 4 },
+  { text: "A new text 41", price: 30, qty: 4 },
+  { text: "A new text 89", price: 30, qty: 4 },
+  { text: "A new text 3", price: 30, qty: 4 },
+  { text: "A new text bn", price: 30, qty: 4 },
+  { text: "A new text ll", price: 30, qty: 4 },
   { text: "Coco foods A new text", price: 30, qty: 4 },
 ];
 class App extends React.Component {
@@ -122,9 +124,8 @@ class App extends React.Component {
 
   onItemSelected(item) {
     const { items, bought } = this.state;
-    const rest = (items || []).filter(
-      (itm) => itm.text !== item.text && itm.price !== item.price
-    );
+    const rest = (items || []).filter((itm) => itm.text !== item.text);
+    console.log("I am the rest bro", rest);
     this.setState({
       items: rest,
       bought: [item, ...bought],
@@ -134,9 +135,7 @@ class App extends React.Component {
 
   undoSelection(item) {
     const { items, bought } = this.state;
-    const rest = (bought || []).filter(
-      (itm) => itm.text !== item.text && itm.price !== item.price
-    );
+    const rest = (bought || []).filter((itm) => itm.text !== item.text);
     const newItems = [item, ...items];
     this.setState({
       bought: rest,
@@ -148,47 +147,35 @@ class App extends React.Component {
     const { items, bought } = this.state;
 
     if (!purchased)
-      return (
-        <FlatList
-          data={items}
-          keyExtractor={(item) =>
-            item.toString() + "-" + Math.random(10000).toString()
-          }
-          renderItem={(item) => {
-            return (
-              <ListItem
-                {...item.item}
-                // text={`${item.item.text}`}
-                // price={item.item.price}
-                // qty={item.item.qty}
-                onItemSelected={this.onItemSelected}
-                purchased={false}
-              />
-            );
-          }}
-        />
-      );
-
-    return (
-      <FlatList
-        data={bought}
-        keyExtractor={(item) =>
-          item.toString() + "-purch-" + Math.random(10000).toString()
-        }
-        renderItem={(item) => {
-          return (
+      return [...items, ...items].map((item, index) => {
+        return (
+          <View key={index.toString()}>
             <ListItem
-              {...item.item}
-              // text={`${item.item.text} `}
+              {...item}
+              // text={`${item.item.text}`}
               // price={item.item.price}
               // qty={item.item.qty}
-              onItemSelected={this.undoSelection}
-              purchased
+              onItemSelected={this.onItemSelected}
+              purchased={false}
             />
-          );
-        }}
-      />
-    );
+          </View>
+        );
+      });
+
+    return bought.map((item, index) => {
+      return (
+        <View key={index.toString() + "----purch----"}>
+          <ListItem
+            {...item}
+            // text={`${item.item.text} `}
+            // price={item.item.price}
+            // qty={item.item.qty}
+            onItemSelected={this.undoSelection}
+            purchased
+          />
+        </View>
+      );
+    });
   }
 
   renderEmptyBasket() {
@@ -217,22 +204,8 @@ class App extends React.Component {
       );
   }
 
-  // async _loadFontsAsync() {
-  //   await Font.loadAsync({
-  //     "google-sans": require("./assets/fonts/ProductSans-Regular.ttf"),
-  //     // "google-sans-bold": require("./assets/fonts/ProductSans-Bold.ttf"),
-  //     // "google-sans-light": require("./assets/fonts/ProductSans-Light.ttf"),
-  //     // "google-sans-regular": require("./assets/fonts/ProductSans-Bold.ttf"),
-  //   });
-  //   this.setState({ fontLoaded: true });
-  // }
-  // componentDidMount() {
-  //   // this._loadFontsAsync();
-  // }
-
   render() {
-    const { bought, items, total, fontsLoaded } = this.state;
-    // if (!fontsLoaded) return <AppLoading />;
+    const { bought, items, total } = this.state;
     return (
       <View
         style={{
@@ -243,12 +216,12 @@ class App extends React.Component {
       >
         <Header total={total} />
         {this.renderEmptyBasket()}
-        <View
+        <ScrollView
           style={{
             paddingLeft: 5,
             paddingRight: 5,
             flex: 1,
-            paddingBottom: 55,
+            bottom: 55,
           }}
         >
           {items && items.length > 0 && (
@@ -263,7 +236,7 @@ class App extends React.Component {
             </Text>
           )}
           {this.renderItems(true)}
-        </View>
+        </ScrollView>
         <Footer
           recordText={this.recordText}
           submitText={this.submitText}
@@ -535,7 +508,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.9,
     shadowRadius: 13,
     elevation: 3,
-    marginTop: 24,
+    marginTop: StatusBar.currentHeight,
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
