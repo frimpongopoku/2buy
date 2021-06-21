@@ -3,6 +3,8 @@ import React from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
+import * as Font from "expo-font";
+import AppLoading from "expo-app-loading";
 import {
   StyleSheet,
   Text,
@@ -14,17 +16,57 @@ import {
   Button,
 } from "react-native";
 
+const Colors = {
+  coral: {
+    normal: "#ff753a",
+    light: "#ffbca4",
+    darker: "rgb(168,84,53)",
+    medium: "#ee8761",
+    coral: "coral",
+
+    // normal: "#383838",
+    // light: "#707070",
+    // darker: "#BEBEBE",
+    // // medium: "#585858",
+    // medium: "#696969",
+
+    // normal: "#ff753a",
+    // light: "#ffbca4",
+    // darker: "rgb(168,84,53)",
+    // medium: "white",
+    // coral: "g",
+  },
+};
+
+const dummy = [
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "A new text", price: 30, qty: 4 },
+  { text: "Coco foods A new text", price: 30, qty: 4 },
+];
 class App extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      items: [],
+      items: dummy,
       text: "",
       bought: [],
       total: 0,
       price: 0,
       qty: 1,
+      fontsLoaded: false,
+      showFooter: false,
     };
     this.recordText = this.recordText.bind(this);
     this.submitText = this.submitText.bind(this);
@@ -36,6 +78,8 @@ class App extends React.Component {
     this.setPriceInput = (self) => (this.priceInput = self);
     this.setQtyInput = (self) => (this.qtyInput = self);
     this.setTextInput = (self) => (this.textInput = self);
+    // this._loadFontsAsync = this._loadFontsAsync.bind(this);
+    this.toggleFooter = this.toggleFooter.bind(this);
   }
 
   recordText(text, fieldName = "text") {
@@ -43,6 +87,9 @@ class App extends React.Component {
     this.setState({ [fieldName]: text });
   }
 
+  toggleFooter() {
+    this.setState({ showFooter: !this.state.showFooter });
+  }
   addAll(items) {
     var n = 0;
     (items || []).forEach(
@@ -90,9 +137,10 @@ class App extends React.Component {
     const rest = (bought || []).filter(
       (itm) => itm.text !== item.text && itm.price !== item.price
     );
+    const newItems = [item, ...items];
     this.setState({
       bought: rest,
-      items: [item, ...items],
+      items: newItems,
       total: this.addAll(newItems),
     });
   }
@@ -157,27 +205,61 @@ class App extends React.Component {
             // backgroundColor: "coral",
           }}
         >
-          <AntDesign name="shoppingcart" size={40} color="rgb(168,84,53)" />
-          <Text style={{ color: "rgb(168,84,53)" }}>
+          <AntDesign
+            name="shoppingcart"
+            size={40}
+            color={Colors.coral.darker}
+          />
+          <Text style={{ color: Colors.coral.darker }}>
             Add items to your buy list...
           </Text>
         </View>
       );
   }
+
+  // async _loadFontsAsync() {
+  //   await Font.loadAsync({
+  //     "google-sans": require("./assets/fonts/ProductSans-Regular.ttf"),
+  //     // "google-sans-bold": require("./assets/fonts/ProductSans-Bold.ttf"),
+  //     // "google-sans-light": require("./assets/fonts/ProductSans-Light.ttf"),
+  //     // "google-sans-regular": require("./assets/fonts/ProductSans-Bold.ttf"),
+  //   });
+  //   this.setState({ fontLoaded: true });
+  // }
+  // componentDidMount() {
+  //   // this._loadFontsAsync();
+  // }
+
   render() {
-    const { bought, items, total } = this.state;
+    const { bought, items, total, fontsLoaded } = this.state;
+    // if (!fontsLoaded) return <AppLoading />;
     return (
-      <View style={{ height: "100%", backgroundColor: "#ee8761" }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: Colors.coral.medium,
+          // paddingBottom: 117,
+        }}
+      >
         <Header total={total} />
         {this.renderEmptyBasket()}
-        <View style={{ paddingLeft: 5, paddingRight: 5 }}>
+        <View
+          style={{
+            paddingLeft: 5,
+            paddingRight: 5,
+            flex: 1,
+            paddingBottom: 55,
+          }}
+        >
           {items && items.length > 0 && (
-            <Text style={{ padding: 10, color: "black" }}>Items to buy...</Text>
+            <Text style={{ padding: 10, color: Colors.coral.darker }}>
+              Items to buy...
+            </Text>
           )}
           {this.renderItems()}
           {bought && bought.length > 0 && (
-            <Text style={{ padding: 15, color: "black" }}>
-              Already purchased items...
+            <Text style={{ padding: 15, color: Colors.coral.darker }}>
+              Removed items...
             </Text>
           )}
           {this.renderItems(true)}
@@ -190,6 +272,8 @@ class App extends React.Component {
           setPriceInput={this.setPriceInput}
           setQtyInput={this.setQtyInput}
           setTextInput={this.setTextInput}
+          show={this.state.showFooter}
+          toggleFooter={this.toggleFooter}
         />
       </View>
     );
@@ -201,7 +285,7 @@ const ListItem = (props) => {
   const containerStyle = {
     flexDirection: "row",
     padding: 10,
-    marginTop: 3,
+    marginBottom: 5,
     marginLeft: 5,
     marginRight: 5,
     borderRadius: 3,
@@ -210,7 +294,7 @@ const ListItem = (props) => {
   return (
     <TouchableOpacity
       onPress={() => {
-        if (onItemSelected) onItemSelected({ text, price, qty });
+        if (onItemSelected) onItemSelected({ text, price, qty, total });
       }}
     >
       <View
@@ -251,7 +335,7 @@ const ListItem = (props) => {
 
               <Text
                 style={{
-                  color: "orange",
+                  color: Colors.coral.coral,
                   fontWeight: "bold",
                   flexDirection: "row",
                 }}
@@ -306,31 +390,74 @@ const Footer = (props) => {
   const {
     submitText,
     recordText,
-    text,
     setPriceInput,
     setQtyInput,
     setTextInput,
+    show,
+    toggleFooter,
   } = props;
   return (
-    <View style={styles.footerContainer}>
-      <Text style={{ color: "white", fontWeight: "bold" }}>
-        Whats the plan?
-      </Text>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
+    <View
+      style={
+        show
+          ? styles.footerContainer
+          : { ...styles.footerContainer, bottom: -107 }
+      }
+    >
+      <TouchableOpacity
+        style={{ flexDirection: "row", alignItems: "center" }}
+        onPress={() => toggleFooter()}
+      >
+        <Text
+          style={{
+            color: "white",
+            fontWeight: "bold",
+            padding: 20,
+          }}
+        >
+          Whats the plan?
+        </Text>
+
+        {show ? (
+          <AntDesign
+            name="caretdown"
+            size={20}
+            color={Colors.coral.light}
+            style={{ marginLeft: "auto", paddingRight: 25 }}
+          />
+        ) : (
+          <AntDesign
+            name="pluscircle"
+            size={20}
+            color={Colors.coral.light}
+            style={{ marginLeft: "auto", paddingRight: 25 }}
+          />
+        )}
+      </TouchableOpacity>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingBottom: 5,
+          paddingLeft: 20,
+          paddingRight: 20,
+        }}
+      >
         <View style={{ flex: 9, flexDirection: "column" }}>
           <TextInput
             ref={setTextInput}
             placeholder="Eg. 'Buy Shoes'"
-            autoFocus={true}
+            autoFocus={show}
             style={{
-              borderBottomColor: "#ffbca4",
-              borderBottomWidth: 2,
+              borderBottomColor: Colors.coral.light,
+              // borderBottomWidth: 1,
               color: "black",
+              minHeight: 50,
             }}
             onChangeText={(val) => recordText(val)}
             onSubmitEditing={(e) => submitText("price")}
             returnKeyType="done"
-            value={text}
+            // value={text}
           />
 
           <View style={{ flexDirection: "row" }}>
@@ -338,11 +465,12 @@ const Footer = (props) => {
               ref={setPriceInput}
               placeholder="Price : Eg. 50.99"
               style={{
-                borderBottomColor: "#ffbca4",
-                borderBottomWidth: 2,
+                borderBottomColor: Colors.coral.light,
+                // borderBottomWidth: 1,
                 color: "black",
                 flex: 1,
                 marginRight: 3,
+                minHeight: 50,
               }}
               onChangeText={(val) => recordText(val, "price")}
               onSubmitEditing={(e) => submitText("many")}
@@ -354,8 +482,8 @@ const Footer = (props) => {
               ref={setQtyInput}
               placeholder="How many ?"
               style={{
-                borderBottomColor: "#ffbca4",
-                borderBottomWidth: 2,
+                borderBottomColor: Colors.coral.light,
+                // borderBottomWidth: 2,
                 color: "black",
                 flex: 1,
                 marginLeft: 3,
@@ -371,7 +499,7 @@ const Footer = (props) => {
           style={{ flex: 1, marginLeft: 6 }}
           onPress={() => submitText()}
         >
-          <AntDesign name="pluscircle" size={35} color="#ffbca4" />
+          <AntDesign name="pluscircle" size={35} color={Colors.coral.light} />
         </TouchableOpacity>
       </View>
     </View>
@@ -386,7 +514,7 @@ const styles = StyleSheet.create({
   },
 
   notPurchased: {
-    backgroundColor: "#ffbca4",
+    backgroundColor: Colors.coral.light,
     color: "black",
   },
   container: {
@@ -401,17 +529,15 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 20,
     minHeight: 55,
-    // backgroundColor: "coral",
-    backgroundColor: "#ff753a",
+    backgroundColor: Colors.coral.normal,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.9,
     shadowRadius: 13,
-    elevation: 6,
-    marginTop: 37,
+    elevation: 3,
+    marginTop: 24,
     display: "flex",
     flexDirection: "row",
-    // justifyContent: "center",
     alignItems: "center",
     width: "100%",
   },
@@ -422,13 +548,14 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   footerContainer: {
-    padding: 20,
+    // padding: 20,
     position: "absolute",
     bottom: 0,
     left: 0,
     width: "100%",
+    elevation: 3,
     minHeight: 50,
-    backgroundColor: "coral",
+    backgroundColor: Colors.coral.coral,
   },
 });
 
