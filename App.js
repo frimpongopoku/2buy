@@ -119,6 +119,7 @@ class App extends React.Component {
       items: newItems,
       text: "",
       price: 0,
+      qty: 1,
       total: this.addAll(newItems),
       dropdDownShow: false,
     };
@@ -132,23 +133,28 @@ class App extends React.Component {
   onItemSelected(item) {
     const { items, bought } = this.state;
     const rest = (items || []).filter((itm) => itm.text !== item.text);
-    this.setState({
+    const changes = {
       items: rest,
       bought: [item, ...bought],
       total: this.addAll(rest),
-    });
+    };
+    this.setState(changes);
+    this.manageData(SAVE, { ...this.state, ...changes });
   }
 
   undoSelection(item) {
     const { items, bought } = this.state;
     const rest = (bought || []).filter((itm) => itm.text !== item.text);
     const newItems = [item, ...items];
-    this.setState({
+    const changes = {
       bought: rest,
       items: newItems,
       total: this.addAll(newItems),
-    });
+    };
+    this.setState(changes);
+    this.manageData(SAVE, { ...this.state, ...changes });
   }
+
   renderItems(purchased = false) {
     const { items, bought } = this.state;
     if (!purchased)
