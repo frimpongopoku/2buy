@@ -17,6 +17,9 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   BackHandler,
+  Platform,
+  KeyboardAvoidingView,
+  SafeAreaView,
 } from "react-native";
 
 const Colors = {
@@ -76,7 +79,7 @@ class App extends React.Component {
     this.setTextInput = (self) => (this.textInput = self);
     this.toggleFooter = this.toggleFooter.bind(this);
     this.toggleDropdown = this.toggleDropdown.bind(this);
-    this.footerPosition = new Animated.Value(107);
+    this.footerPosition = new Animated.Value(Platform.OS === "ios" ? 127 : 107);
   }
 
   toggleDropdown() {
@@ -238,128 +241,146 @@ class App extends React.Component {
   render() {
     const { bought, items, total, dropdDownShow, showSettingsModal, currency } =
       this.state;
+
+    const behavior = Platform.OS === "ios" ? "padding" : "height";
     return (
-      <TouchableWithoutFeedback
-        onPress={() => this.setState({ dropdDownShow: false })}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: Colors.coral.medium,
-          }}
+      <SafeAreaView>
+        <TouchableWithoutFeedback
+          onPress={() => this.setState({ dropdDownShow: false })}
         >
-          <Header
-            total={total}
-            toggleDropdown={this.toggleDropdown}
-            currency={currency}
-          />
-          {dropdDownShow && (
-            <OptionsDropdown
-              toggleDropdown={this.toggleDropdown}
-              show={this.state.dropdDownShow}
-              toggleModal={() => this.setState({ showSettingsModal: true })}
-              clearAll={() => {
-                this.setState({
-                  items: [],
-                  bought: [],
-                  dropdDownShow: false,
-                  total: 0,
-                });
-                this.manageData(SAVE, null);
-              }}
-            />
-          )}
-          {/* ---------------------- MODAL ----------------------- */}
-          <Modal visible={showSettingsModal} animationType="slide">
+          <KeyboardAvoidingView
+            behavior={behavior}
+            enabled
+            style={{ flexGrow: 1, height: "100%" }}
+          >
             <View
               style={{
-                padding: 20,
                 flex: 1,
-                backgroundColor: Colors.coral.light,
+                backgroundColor: Colors.coral.medium,
               }}
             >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ fontWeight: "bold", fontSize: 18 }}>
-                  Settings
-                </Text>
-                <TouchableOpacity
-                  onPress={() => this.setState({ showSettingsModal: false })}
-                  style={{ marginLeft: "auto" }}
-                >
-                  <AntDesign
-                    name="closecircle"
-                    size={20}
-                    color={Colors.coral.darker}
-                    style={{ padding: 6 }}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              <View style={{ marginTop: 15 }}>
-                <Text style={{ color: Colors.coral.darker }}>
-                  What currency should your calculations be made in...?
-                </Text>
-                <TextInput
-                  autoFocus
-                  placeholder={`Eg. 'Rs' `}
-                  maxLength={4}
-                  onChangeText={(text) => this.setState({ currency: text })}
-                  style={{
-                    borderLeftWidth: 3,
-                    paddingLeft: 10,
-                    marginTop: 8,
-                    borderColor: Colors.coral.darker,
-                    fontWeight: "bold",
-                    color: Colors.coral.darker,
+              <Header
+                total={total}
+                toggleDropdown={this.toggleDropdown}
+                currency={currency}
+              />
+              {dropdDownShow && (
+                <OptionsDropdown
+                  toggleDropdown={this.toggleDropdown}
+                  show={this.state.dropdDownShow}
+                  toggleModal={() =>
+                    this.setState({
+                      showSettingsModal: true,
+                      dropdDownShow: false,
+                    })
+                  }
+                  clearAll={() => {
+                    this.setState({
+                      items: [],
+                      bought: [],
+                      dropdDownShow: false,
+                      total: 0,
+                    });
+                    this.manageData(SAVE, null);
                   }}
                 />
-              </View>
-            </View>
-          </Modal>
-          {/* ------------------------------------------------------ */}
+              )}
+              {/* ---------------------- MODAL ----------------------- */}
+              <Modal visible={showSettingsModal} animationType="slide">
+                <View
+                  style={{
+                    padding: 20,
+                    paddingTop: 40,
+                    flex: 1,
+                    backgroundColor: Colors.coral.light,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text style={{ fontWeight: "bold", fontSize: 18 }}>
+                      Settings
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        this.setState({ showSettingsModal: false })
+                      }
+                      style={{ marginLeft: "auto" }}
+                    >
+                      <AntDesign
+                        name="closecircle"
+                        size={20}
+                        color={Colors.coral.darker}
+                        style={{ padding: 6 }}
+                      />
+                    </TouchableOpacity>
+                  </View>
 
-          {this.renderEmptyBasket()}
-          <ScrollView
-            style={{
-              paddingLeft: 5,
-              paddingRight: 5,
-              flex: 1,
-              bottom: 55,
-              marginTop: 55,
-            }}
-          >
-            {items && items.length > 0 && (
-              <Text style={{ padding: 10, color: Colors.coral.darker }}>
-                Items to buy...
-              </Text>
-            )}
-            {this.renderItems()}
-            {bought && bought.length > 0 && (
-              <Text style={{ padding: 15, color: Colors.coral.darker }}>
-                Removed items...
-              </Text>
-            )}
-            {this.renderItems(true)}
-          </ScrollView>
-          <Footer
-            recordText={this.recordText}
-            submitText={this.submitText}
-            text={this.state.text}
-            price={this.state.price}
-            setPriceInput={this.setPriceInput}
-            setQtyInput={this.setQtyInput}
-            setTextInput={this.setTextInput}
-            show={this.state.showFooter}
-            toggleFooter={this.toggleFooter}
-            position={this.footerPosition}
-          />
-        </View>
-      </TouchableWithoutFeedback>
+                  <View style={{ marginTop: 15 }}>
+                    <Text style={{ color: Colors.coral.darker }}>
+                      What currency should your calculations be made in...?
+                    </Text>
+                    <TextInput
+                      autoFocus
+                      placeholder={`Eg. 'Rs' `}
+                      maxLength={4}
+                      onChangeText={(text) => this.setState({ currency: text })}
+                      style={{
+                        borderLeftWidth: 3,
+                        paddingLeft: 10,
+                        marginTop: 8,
+                        borderColor: Colors.coral.darker,
+                        fontWeight: "bold",
+                        color: Colors.coral.darker,
+                      }}
+                    />
+                  </View>
+                </View>
+              </Modal>
+              {/* ------------------------------------------------------ */}
+
+              {this.renderEmptyBasket()}
+              <ScrollView
+                style={{
+                  paddingLeft: 5,
+                  paddingRight: 5,
+                  flex: 1,
+                  bottom: 55,
+                  marginTop: 55,
+                }}
+              >
+                {items && items.length > 0 && (
+                  <Text style={{ padding: 10, color: Colors.coral.darker }}>
+                    Items to buy...
+                  </Text>
+                )}
+                {this.renderItems()}
+                {bought && bought.length > 0 && (
+                  <Text style={{ padding: 15, color: Colors.coral.darker }}>
+                    Removed items...
+                  </Text>
+                )}
+                {this.renderItems(true)}
+              </ScrollView>
+              <Footer
+                recordText={this.recordText}
+                submitText={this.submitText}
+                text={this.state.text}
+                price={this.state.price}
+                setPriceInput={this.setPriceInput}
+                setQtyInput={this.setQtyInput}
+                setTextInput={this.setTextInput}
+                show={this.state.showFooter}
+                toggleFooter={this.toggleFooter}
+                position={this.footerPosition}
+              />
+            </View>
+          </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
+      </SafeAreaView>
     );
   }
 }
@@ -375,7 +396,7 @@ const OptionsDropdown = (props) => {
         elevation: 3,
         position: "absolute",
         right: 3,
-        top: 80,
+        top: Platform.OS === "ios" ? 55 : 80,
         borderBottomRightRadius: 7,
         borderBottomLeftRadius: 7,
         backgroundColor: Colors.coral.light,
@@ -385,15 +406,7 @@ const OptionsDropdown = (props) => {
       <TouchableOpacity onPress={() => clearAll()}>
         <Text style={styles.dropItems}>Clear All</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={
-          () => toggleModal()
-          // Alert.alert(
-          //   "Enter Currency",
-          //   "What currency would you want your calculations to be in..?"
-          // )
-        }
-      >
+      <TouchableOpacity onPress={() => toggleModal()}>
         <Text style={styles.dropItems}>Settings</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => BackHandler.exitApp()}>
@@ -549,7 +562,10 @@ const Footer = (props) => {
     <Animated.View
       style={
         !show
-          ? { ...styles.footerContainer, bottom: -107 }
+          ? {
+              ...styles.footerContainer,
+              bottom: Platform.OS === "ios" ? -127 : -107,
+            }
           : {
               ...styles.footerContainer,
 
@@ -656,6 +672,8 @@ const Footer = (props) => {
   );
 };
 
+var statusHeight = StatusBar.currentHeight;
+// if (Platform.OS === "ios") statusHeight = 40;
 const styles = StyleSheet.create({
   purchased: {
     backgroundColor: "#E0E0E0",
@@ -681,7 +699,7 @@ const styles = StyleSheet.create({
     minHeight: 55,
     backgroundColor: Colors.coral.normal,
     elevation: 2,
-    marginTop: StatusBar.currentHeight,
+    marginTop: statusHeight,
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
